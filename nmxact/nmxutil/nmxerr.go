@@ -103,24 +103,11 @@ func (e *XportError) Error() string {
 }
 
 func IsXport(err error) bool {
+	if err == nil {
+		return false
+	}
+
 	_, ok := err.(*XportError)
-	return ok
-}
-
-type XportTimeoutError struct {
-	Text string
-}
-
-func NewXportTimeoutError(text string) *XportTimeoutError {
-	return &XportTimeoutError{text}
-}
-
-func (e *XportTimeoutError) Error() string {
-	return e.Text
-}
-
-func IsXportTimeout(err error) bool {
-	_, ok := err.(*XportTimeoutError)
 	return ok
 }
 
