@@ -285,6 +285,7 @@ func (bd *BleDispatcher) Dispatch(data []byte) {
 		log.Debugf(
 			"No BLE listener for op=%d type=%d seq=%d connHandle=%d",
 			base.Op, base.Type, base.Seq, base.ConnHandle)
+        panic("YOURMOM")
 		return
 	}
 

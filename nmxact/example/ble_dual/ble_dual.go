@@ -21,6 +21,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/signal"
 	"sync"
@@ -31,6 +32,7 @@ import (
 	"mynewt.apache.org/newt/util"
 	"mynewt.apache.org/newtmgr/nmxact/bledefs"
 	"mynewt.apache.org/newtmgr/nmxact/nmble"
+	"mynewt.apache.org/newtmgr/nmxact/nmp"
 	"mynewt.apache.org/newtmgr/nmxact/nmxutil"
 	"mynewt.apache.org/newtmgr/nmxact/sesn"
 	"mynewt.apache.org/newtmgr/nmxact/xact"
@@ -144,6 +146,37 @@ func sendTaskStat(s sesn.Sesn) error {
 	return nil
 }
 
+func sendImageUpload(s sesn.Sesn) error {
+	data, err := ioutil.ReadFile("/Users/ccollins/Downloads/f17c9295bfbbf8f6b31ddcfa835be095090d0a875edcf88116bfaeec55f27e93/app.img")
+	if err != nil {
+		return err
+	}
+
+	c := xact.NewImageUploadCmd()
+	c.Data = data
+	c.ProgressCb = func(c *xact.ImageUploadCmd, r *nmp.ImageUploadRsp) {
+		fmt.Printf("Rxed upload rsp: %d\n", r.Off)
+	}
+
+	res, err := c.Run(s)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error executing image upload command: %s\n",
+			err.Error())
+		panic(err.Error())
+	}
+
+	if res.Status() != 0 {
+		fmt.Printf("Peer responded negatively to image upload command; "+
+			"status=%d\n", res.Status())
+		panic("ERROR")
+	}
+
+	fmt.Printf("[%p] Peer responded with image upload: rc=%#v\n",
+		s, res.Status())
+
+	return nil
+}
+
 func sendOne(s sesn.Sesn) {
 	// Repeatedly:
 	//     * Connect to peer if unconnected.
@@ -171,25 +204,29 @@ func sendOne(s sesn.Sesn) {
 		return
 	}
 
+	// Task stat
+	if err := sendTaskStat(s); err != nil {
+		return
+	}
 	// MP stat
 	if err := sendMpStat(s); err != nil {
 		return
 	}
 
-	// Task stat
-	if err := sendTaskStat(s); err != nil {
+	// Image upload
+	if err := sendImageUpload(s); err != nil {
 		return
 	}
 }
 
 func main() {
-	nmxutil.SetLogLevel(log.InfoLevel)
+	nmxutil.SetLogLevel(log.DebugLevel)
 
 	// Initialize the BLE transport.
 	params := nmble.NewXportCfg()
 	params.SockPath = "/tmp/blehostd-uds"
-	params.BlehostdPath = "blehostd.elf"
-	params.DevPath = "/dev/cu.usbmodem14221"
+	params.BlehostdPath = "/home/admin/ccollins/repos/newt_ci_templates/bin/targets/native-blehostd/app/apps/blehostd/blehostd.elf"
+	params.DevPath = "/dev/ttyUSB0"
 
 	x, err := nmble.NewBleXport(params)
 	if err != nil {
@@ -211,7 +248,7 @@ func main() {
 	peerNames := []string{
 		"ccollins1",
 		"ccollins2",
-		"ccollins3",
+		//"ccollins3",
 	}
 
 	sesns := []sesn.Sesn{}
