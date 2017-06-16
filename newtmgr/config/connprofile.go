@@ -47,6 +47,8 @@ const (
 	CONN_TYPE_NONE ConnType = iota
 	CONN_TYPE_SERIAL_PLAIN
 	CONN_TYPE_SERIAL_OIC
+	CONN_TYPE_BLL_PLAIN
+	CONN_TYPE_BLL_OIC
 	CONN_TYPE_BLE_PLAIN
 	CONN_TYPE_BLE_OIC
 	CONN_TYPE_UDP_PLAIN
@@ -56,6 +58,8 @@ const (
 var connTypeNameMap = map[ConnType]string{
 	CONN_TYPE_SERIAL_PLAIN: "serial",
 	CONN_TYPE_SERIAL_OIC:   "oic_serial",
+	CONN_TYPE_BLL_PLAIN:    "bll",
+	CONN_TYPE_BLL_OIC:      "oic_bll",
 	CONN_TYPE_BLE_PLAIN:    "ble",
 	CONN_TYPE_BLE_OIC:      "oic_ble",
 	CONN_TYPE_UDP_PLAIN:    "udp",
