@@ -1,13 +1,13 @@
 package bll
 
 import (
-	"context"
 	"fmt"
 	"sync"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/currantlabs/ble"
+	"golang.org/x/net/context"
 
 	"mynewt.apache.org/newtmgr/nmxact/bledefs"
 	"mynewt.apache.org/newtmgr/nmxact/nmble"

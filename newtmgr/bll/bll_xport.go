@@ -5,7 +5,6 @@ import (
 
 	"github.com/currantlabs/ble"
 	"github.com/currantlabs/ble/examples/lib/dev"
-	"github.com/currantlabs/ble/linux"
 
 	"mynewt.apache.org/newtmgr/nmxact/scan"
 	"mynewt.apache.org/newtmgr/nmxact/sesn"
@@ -53,12 +52,6 @@ func (bx *BllXport) Start() error {
 	d, err := dev.NewDevice(bx.cfg.CtlrName)
 	if err != nil {
 		return err
-	}
-
-	if dev, ok := d.(*linux.Device); ok {
-		if err := setConnParams(dev); err != nil {
-			return err
-		}
 	}
 
 	ble.SetDefaultDevice(d)

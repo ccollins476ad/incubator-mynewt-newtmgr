@@ -1,13 +1,13 @@
 package bll
 
 import (
-	"context"
 	"fmt"
 	"sync"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/currantlabs/ble"
+	"golang.org/x/net/context"
 
 	"mynewt.apache.org/newtmgr/nmxact/bledefs"
 	"mynewt.apache.org/newtmgr/nmxact/nmble"
@@ -30,8 +30,7 @@ type BllOicSesn struct {
 
 func NewBllOicSesn(cfg BllSesnCfg) *BllOicSesn {
 	return &BllOicSesn{
-		cfg:  cfg,
-		rxer: omp.NewReceiver(true),
+		cfg: cfg,
 	}
 }
 
@@ -138,6 +137,8 @@ func (bps *BllOicSesn) Open() error {
 		return nmxutil.NewSesnAlreadyOpenError(
 			"Attempt to open an already-open bll session")
 	}
+
+	bps.rxer = omp.NewReceiver(true)
 
 	if err := bps.connect(); err != nil {
 		return err
