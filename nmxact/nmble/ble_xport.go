@@ -566,6 +566,10 @@ func (bx *BleXport) Start() error {
 		return err
 	}
 
+	if err := SetAllServices(bx); err != nil {
+		return err
+	}
+
 	// Now that the first start attempt has succeeded, start a restart loop in
 	// the background.
 	go func() {

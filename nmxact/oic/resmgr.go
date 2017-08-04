@@ -5,6 +5,8 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/runtimeco/go-coap"
+
+	"mynewt.apache.org/newtmgr/nmxact/nmxutil"
 )
 
 type ResGetFn func(uri string) (coap.COAPCode, []byte)
@@ -43,7 +45,7 @@ func (rm *ResMgr) Access(m coap.Message) (coap.COAPCode, []byte) {
 	}
 	path := paths[0]
 
-	r, ok := rm.nameResMap[path]
+	r, ok := rm.uriResMap[path]
 	if !ok {
 		log.Debugf("Incoming CoAP message specifies unknown resource: %s", path)
 		return coap.NotFound, nil
@@ -54,7 +56,7 @@ func (rm *ResMgr) Access(m coap.Message) (coap.COAPCode, []byte) {
 		if r.GetCb == nil {
 			return coap.MethodNotAllowed, nil
 		} else {
-			return r.GetCb(path, m.Payload())
+			return r.GetCb(path)
 		}
 
 	case coap.PUT:
@@ -71,45 +73,36 @@ func (rm *ResMgr) Access(m coap.Message) (coap.COAPCode, []byte) {
 	}
 }
 
-type FixedResource struct {
-	Resource
-	Value map[string]interface{}
-}
-
 type FixedResourceWriteFn func(val map[string]interface{}) coap.COAPCode
 
-func NewFixedResource(uri string, initialVal interface{},
-	writeCb FixedResourceWriteFn) *FixedResource {
+func NewFixedResource(uri string, val map[string]interface{},
+	writeCb FixedResourceWriteFn) Resource {
 
-	fr := &FixedResource{
-		Resource: Resource{
-			Uri: uri,
+	return Resource{
+		Uri: uri,
 
-			GetCb: func(uri string) (coap.COAPCode, []byte) {
-				b, err := nmxutil.EncodeCborMap(fr.Value)
-				if err != nil {
-					return coap.InternalServerError, nil
-				}
-				return coap.Content, b
-			},
+		GetCb: func(uri string) (coap.COAPCode, []byte) {
+			b, err := nmxutil.EncodeCborMap(val)
+			if err != nil {
+				return coap.InternalServerError, nil
+			}
+			return coap.Content, b
+		},
 
-			PutCb: func(uri string, data []byte) coap.COAPCode {
-				m, err := nmxutil.DecodeCborMap(data)
-				if err != nil {
-					return coap.BadRequest
-				}
+		PutCb: func(uri string, data []byte) coap.COAPCode {
+			m, err := nmxutil.DecodeCborMap(data)
+			if err != nil {
+				return coap.BadRequest
+			}
 
-				code := writeCb(m)
-				if code == coap.Created ||
-					code == coap.Deleted ||
-					code == coap.Changed {
+			code := writeCb(m)
+			if code == coap.Created ||
+				code == coap.Deleted ||
+				code == coap.Changed {
 
-					fr.Value = m
-				}
-				return code
-			},
+				val = m
+			}
+			return code
 		},
 	}
-
-	return fr
 }
