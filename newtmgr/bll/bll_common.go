@@ -29,7 +29,7 @@ import (
 	"mynewt.apache.org/newtmgr/nmxact/bledefs"
 )
 
-func exchangeMtu(cln ble.Client, preferredMtu int) (int, error) {
+func exchangeMtu(cln ble.Client, preferredMtu uint16) (uint16, error) {
 	log.Debugf("Exchanging MTU")
 
 	// We loop three times here to workaround an library issue with macOS.  In
@@ -41,7 +41,7 @@ func exchangeMtu(cln ble.Client, preferredMtu int) (int, error) {
 	var mtu int
 	for i := 0; i < 3; i++ {
 		var err error
-		mtu, err = cln.ExchangeMTU(preferredMtu)
+		mtu, err = cln.ExchangeMTU(int(preferredMtu))
 		if err != nil {
 			return 0, err
 		}
@@ -64,5 +64,5 @@ func exchangeMtu(cln ble.Client, preferredMtu int) (int, error) {
 	}
 
 	log.Debugf("Exchanged MTU; ATT MTU = %d", mtu)
-	return mtu, nil
+	return uint16(mtu), nil
 }
