@@ -31,6 +31,7 @@ func NewNotifyListener() *NotifyListener {
 
 type Conn struct {
 	bx         *BleXport
+	prio       MasterPrio
 	rxvr       *Receiver
 	attMtu     uint16
 	profile    Profile
@@ -56,9 +57,10 @@ type Conn struct {
 	mtx sync.Mutex
 }
 
-func NewConn(bx *BleXport) *Conn {
+func NewConn(bx *BleXport, prio MasterPrio) *Conn {
 	return &Conn{
 		bx:             bx,
+		prio:           prio,
 		rxvr:           NewReceiver(nmxutil.GetNextId(), bx, 1),
 		connHandle:     BLE_CONN_HANDLE_NONE,
 		attMtu:         BLE_ATT_MTU_DFLT,
@@ -103,7 +105,7 @@ func (c *Conn) shutdown(err error) {
 	c.connecting = false
 	c.connHandle = BLE_CONN_HANDLE_NONE
 
-	c.bx.StopWaitingForMaster(c, err)
+	StopWaitingForMaster(c.bx, c.prio, c, err)
 
 	c.rxvr.RemoveAll("shutdown")
 	c.rxvr.WaitUntilNoListeners()
@@ -252,10 +254,6 @@ func (c *Conn) startConnecting() error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
-	if c.stopChan == nil {
-		return fmt.Errorf("Attempt to re-use conn object")
-	}
-
 	if c.connHandle != BLE_CONN_HANDLE_NONE {
 		return nmxutil.NewSesnAlreadyOpenError(
 			"BLE connection already established")
@@ -332,7 +330,7 @@ func (c *Conn) Connect(bx *BleXport, ownAddrType BleAddrType, peer BleDev,
 	r.PeerAddr = peer.Addr
 
 	// Initiating a connection requires dedicated master privileges.
-	if err := c.bx.AcquireMaster(c); err != nil {
+	if err := AcquireMaster(c.bx, c.prio, c); err != nil {
 		return err
 	}
 	defer c.bx.ReleaseMaster()

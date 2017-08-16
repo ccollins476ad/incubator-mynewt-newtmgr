@@ -797,3 +797,91 @@ func BuildMgmtChrs(mgmtProto sesn.MgmtProto) (BleMgmtChrs, error) {
 
 	return mgmtChrs, nil
 }
+
+func MtuIn(mgmtProto sesn.MgmtProto, attMtu uint16) (int, error) {
+	var mtu int
+
+	switch mgmtProto {
+	case sesn.MGMT_PROTO_NMP:
+		mtu = int(attMtu) - NOTIFY_CMD_BASE_SZ - nmp.NMP_HDR_SIZE
+
+	case sesn.MGMT_PROTO_OMP:
+		mtu = int(attMtu) - NOTIFY_CMD_BASE_SZ - omp.OMP_MSG_OVERHEAD -
+			nmp.NMP_HDR_SIZE
+
+	default:
+		return 0, fmt.Errorf("Invalid management protocol: %s", mgmtProto)
+	}
+
+	return mtu, nil
+}
+
+func MtuOut(mgmtProto sesn.MgmtProto, attMtu uint16) (int, error) {
+	var mtu int
+
+	switch mgmtProto {
+	case sesn.MGMT_PROTO_NMP:
+		mtu = int(attMtu) - NOTIFY_CMD_BASE_SZ - nmp.NMP_HDR_SIZE
+
+	case sesn.MGMT_PROTO_OMP:
+		mtu = int(attMtu) - NOTIFY_CMD_BASE_SZ - omp.OMP_MSG_OVERHEAD -
+			nmp.NMP_HDR_SIZE
+
+	default:
+		return 0, fmt.Errorf("Invalid management protocol: %s", mgmtProto)
+	}
+
+	return util.IntMin(mtu, BLE_ATT_ATTR_MAX_LEN), nil
+}
+
+func EncodeMgmtMsg(mgmtProto sesn.MgmtProto, m *nmp.NmpMsg) ([]byte, error) {
+	switch mgmtProto {
+	case sesn.MGMT_PROTO_NMP:
+		return nmp.EncodeNmpPlain(m)
+
+	case sesn.MGMT_PROTO_OMP:
+		return omp.EncodeOmpTcp(m)
+
+	default:
+		return nil,
+			fmt.Errorf("invalid management protocol: %+v", mgmtProto)
+	}
+}
+
+type MasterPrio int
+
+const (
+	// Lower number = higher priority.
+	MASTER_PRIO_CONNECT = 0
+	MASTER_PRIO_SCAN    = 1
+)
+
+func AcquireMaster(bx *BleXport, prio MasterPrio, token interface{}) error {
+	switch prio {
+	case MASTER_PRIO_CONNECT:
+		return bx.AcquireMasterConnect(token)
+
+	case MASTER_PRIO_SCAN:
+		return bx.AcquireMasterScan(token)
+
+	default:
+		return fmt.Errorf("Invalid session priority: %+v", prio)
+	}
+}
+
+func StopWaitingForMaster(bx *BleXport, prio MasterPrio, token interface{},
+	err error) error {
+
+	switch prio {
+	case MASTER_PRIO_CONNECT:
+		bx.StopWaitingForMasterConnect(token, err)
+		return nil
+
+	case MASTER_PRIO_SCAN:
+		bx.StopWaitingForMasterScan(token, err)
+		return nil
+
+	default:
+		return fmt.Errorf("Invalid session priority: %+v", prio)
+	}
+}
