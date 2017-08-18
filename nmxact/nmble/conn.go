@@ -39,13 +39,13 @@ type Conn struct {
 	connHandle uint16
 
 	connecting     bool
-	stopped        bool
 	disconnectChan chan error
 	wg             sync.WaitGroup
 	encBlocker     nmxutil.Blocker
 
-	// Terminates all go routines.  Gets set to null after disconnect.
+	// Terminates all go routines.
 	stopChan chan struct{}
+	stopped  bool
 
 	notifyMap map[*Characteristic]*NotifyListener
 
@@ -74,17 +74,7 @@ func (c *Conn) DisconnectChan() <-chan error {
 	return c.disconnectChan
 }
 
-func (c *Conn) initiateShutdown() bool {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
-
-	if c.stopped {
-		return false
-	}
-	c.stopped = true
-
-	close(c.stopChan)
-	return true
+func (c *Conn) commitShutdown() bool {
 }
 
 func (c *Conn) abortNotifyListeners(err error) {
@@ -98,24 +88,51 @@ func (c *Conn) abortNotifyListeners(err error) {
 }
 
 func (c *Conn) shutdown(err error) {
-	if !c.initiateShutdown() {
-		return
+	// Returns true if a shutdown was successfully initiated.  Prevents
+	// repeated shutdowns without keeping the mutex locked throughout the
+	// duration of the shutdown.
+	commit := func() bool {
+		c.mtx.Lock()
+		defer c.mtx.Unlock()
+
+		if c.stopped {
+			return false
+		}
+		c.stopped = true
+
+		close(c.stopChan)
+		return true
 	}
 
-	c.connecting = false
-	c.connHandle = BLE_CONN_HANDLE_NONE
+	// This function runs in a Go routine to prevent deadlock.  The caller
+	// likely needs to return and release the wait group before this function
+	// can complete.
+	go func() {
+		if !commit() {
+			return
+		}
 
-	StopWaitingForMaster(c.bx, c.prio, c, err)
+		c.connecting = false
+		c.connHandle = BLE_CONN_HANDLE_NONE
 
-	c.rxvr.RemoveAll("shutdown")
-	c.rxvr.WaitUntilNoListeners()
+		StopWaitingForMaster(c.bx, c.prio, c, err)
 
-	c.wg.Wait()
+		c.rxvr.RemoveAll("shutdown")
+		c.rxvr.WaitUntilNoListeners()
 
-	c.abortNotifyListeners(err)
+		c.wg.Wait()
 
-	c.disconnectChan <- err
-	close(c.disconnectChan)
+		c.abortNotifyListeners(err)
+
+		c.disconnectChan <- err
+		close(c.disconnectChan)
+	}()
+}
+
+// Forces a shutdown after the specified delay.  If a shutdown happens in the
+// meantime, the delayed procedure is a no-op.
+func (c *Conn) shutdownIn(delay time.Duration, err error) {
+
 }
 
 func (c *Conn) newDisconnectError(reason int) error {
@@ -140,11 +157,10 @@ func (c *Conn) eventListen(bl *Listener) error {
 				return
 
 			case err, ok := <-bl.ErrChan:
-				if !ok {
-					return
+				if ok {
+					go c.shutdown(err)
 				}
-
-				go c.shutdown(err)
+				return
 
 			case bm, ok := <-bl.MsgChan:
 				if !ok {
