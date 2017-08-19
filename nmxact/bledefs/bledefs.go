@@ -643,6 +643,10 @@ type BleConnDesc struct {
 	PeerOtaAddrType BleAddrType
 	PeerOtaAddr     BleAddr
 	Role            BleRole
+	Encrypted       bool
+	Authenticated   bool
+	Bonded          bool
+	KeySize         int
 }
 
 func (d *BleConnDesc) String() string {

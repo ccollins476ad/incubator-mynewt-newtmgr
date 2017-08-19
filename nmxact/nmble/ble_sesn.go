@@ -320,6 +320,41 @@ func (s *BleSesn) ConnInfo() (BleConnDesc, error) {
 	return s.conn.ConnInfo(), nil
 }
 
+func (s *BleSesn) checkSecurity(encReqd bool, authReqd bool) (bool, bool) {
+	desc, _ := s.ConnInfo()
+
+	return !encReqd || desc.Encrypted,
+		!authReqd || desc.Authenticated
+}
+
+func (s *BleSesn) ensureWriteSecurity(c *Characteristic) error {
+	encReqd := c.Properties&BLE_GATT_F_WRITE_ENC != 0
+	authReqd := c.Properties&BLE_GATT_F_WRITE_AUTHEN != 0
+
+	encGood, authGood := s.checkSecurity(encReqd, authReqd)
+	if encGood && authGood {
+		return nil
+	}
+
+	if err := s.conn.InitiateSecurity(); err != nil {
+		return err
+	}
+
+	// Ensure pairing meets characteristic's requirements.
+	encGood, authGood = s.checkSecurity(encReqd, authReqd)
+	if !encGood {
+		return fmt.Errorf("Insufficient BLE security; "+
+			"characteristic %s requires encryption", c.String())
+	}
+
+	if !authGood {
+		return fmt.Errorf("Insufficient BLE security; "+
+			"characteristic %s requires authentication", c.String())
+	}
+
+	return nil
+}
+
 func (s *BleSesn) TxNmpOnce(req *nmp.NmpMsg, opt sesn.TxOptions) (
 	nmp.NmpRsp, error) {
 
@@ -329,6 +364,9 @@ func (s *BleSesn) TxNmpOnce(req *nmp.NmpMsg, opt sesn.TxOptions) (
 
 	chr, err := s.getChr(s.mgmtChrs.NmpReqChr)
 	if err != nil {
+		return nil, err
+	}
+	if err := s.ensureWriteSecurity(chr); err != nil {
 		return nil, err
 	}
 
@@ -352,6 +390,10 @@ func (s *BleSesn) TxCoapOnce(m coap.Message,
 	if err != nil {
 		return 0, nil, err
 	}
+	if err := s.ensureWriteSecurity(chr); err != nil {
+		return 0, nil, err
+	}
+
 	txRaw := func(b []byte) error {
 		return s.conn.WriteChrNoRsp(chr, b, "coap")
 	}
