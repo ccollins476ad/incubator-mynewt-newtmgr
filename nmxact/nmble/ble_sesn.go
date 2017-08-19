@@ -89,11 +89,12 @@ func (s *BleSesn) AbortRx(seq uint8) error {
 	return nil
 }
 
+// Listens for disconnect in the background.
 func (s *BleSesn) disconnectListen() {
-	// Listen for disconnect in the background.
 	s.wg.Add(1)
 	go func() {
-		// If the session is being closed, unblock the close() call.
+		// If the session is being closed, unblock the close() call on
+		// completion.
 		defer s.closeBlocker.Unblock(nil)
 
 		// Block until disconnect.

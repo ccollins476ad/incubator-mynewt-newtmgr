@@ -104,21 +104,23 @@ const (
 
 // Implements xport.Xport.
 type BleXport struct {
-	cfg          XportCfg
-	d            *Dispatcher
-	client       *unixchild.Client
-	scanner      *BleScanner
-	state        BleXportState
+	cfg        XportCfg
+	d          *Dispatcher
+	client     *unixchild.Client
+	scanner    *BleScanner
+	state      BleXportState
+	master     Master
+	slave      nmxutil.SingleResource
+	randAddr   *BleAddr
+	advertiser *Advertiser
+	cm         ChrMgr
+
 	stopChan     chan struct{}
 	shutdownChan chan bool
 	readyBcast   nmxutil.Bcaster
-	master       Master
-	slave        nmxutil.SingleResource
-	randAddr     *BleAddr
-	stateMtx     sync.Mutex
-	advertiser   *Advertiser
-	cm           ChrMgr
 	sesns        map[uint16]*BleSesn
+	mtx          sync.Mutex
+	wg           sync.WaitGroup
 }
 
 func NewBleXport(cfg XportCfg) (*BleXport, error) {
@@ -254,33 +256,43 @@ func (bx *BleXport) initialSyncCheck() (bool, *Listener, error) {
 }
 
 func (bx *BleXport) shutdown(restart bool, err error) {
+	// Prevents repeated shutdowns without keeping the mutex locked throughout
+	// the duration of the shutdown.
+	//
+	// @return bool             true if a shutdown was successfully initiated.
+	// @return bool             true if the transport was fully started when
+	//                              the shutdown was initiated.
+	initiate := func() (bool, bool) {
+		bx.mtx.Lock()
+		defer bx.mtx.Unlock()
+
+		var success bool
+		var fullyStarted bool
+
+		switch bx.state {
+		case BLE_XPORT_STATE_STARTED:
+			success = true
+			fullyStarted = true
+		case BLE_XPORT_STATE_STARTING:
+			success = true
+			fullyStarted = false
+		default:
+			success = false
+		}
+
+		if success {
+			bx.state = BLE_XPORT_STATE_STOPPING
+		}
+
+		return success, fullyStarted
+	}
+
 	nmxutil.Assert(nmxutil.IsXport(err))
 
 	log.Debugf("Shutting down BLE transport")
 
-	bx.mtx.Lock()
-
-	var fullyStarted bool
-	var already bool
-
-	switch bx.state {
-	case BLE_XPORT_STATE_STARTED:
-		already = false
-		fullyStarted = true
-	case BLE_XPORT_STATE_STARTING:
-		already = false
-		fullyStarted = false
-	default:
-		already = true
-	}
-
-	if !already {
-		bx.state = BLE_XPORT_STATE_STOPPING
-	}
-
-	bx.mtx.Unlock()
-
-	if already {
+	success, fullyStarted := initiate()
+	if !success {
 		// Shutdown already in progress.
 		return
 	}
@@ -302,8 +314,9 @@ func (bx *BleXport) shutdown(restart bool, err error) {
 		ResetXact(bx)
 	}
 
-	// Stop all of this transport's go routines.
+	// Stop all of this transport's Go routines.
 	close(bx.stopChan)
+	wg.Wait()
 
 	// Stop the unixchild instance (blehostd + socket).
 	if bx.client != nil {
@@ -394,7 +407,10 @@ func (bx *BleXport) startOnce() error {
 	}
 
 	// Listen for errors and data from the blehostd process.
+	wg.Add(1)
 	go func() {
+		defer c.wg.Done()
+
 		for {
 			select {
 			case err := <-bx.client.ErrChild:
@@ -450,7 +466,10 @@ func (bx *BleXport) startOnce() error {
 	//     * sync loss
 	//     * stack reset
 	//     * GATT access
+	wg.Add(1)
 	go func() {
+		defer c.wg.Done()
+
 		resetl, err := bx.addResetListener()
 		if err != nil {
 			bx.shutdown(true, err)
@@ -565,7 +584,8 @@ func (bx *BleXport) Start() error {
 	}
 
 	// Now that the first start attempt has succeeded, start a restart loop in
-	// the background.
+	// the background.  This Go routine does not participate in the wait group
+	// because it terminates itself independent of the others.
 	go func() {
 		// Block until transport shuts down.
 		restart := <-bx.shutdownChan
