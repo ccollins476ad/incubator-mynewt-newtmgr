@@ -114,11 +114,11 @@ type BleXport struct {
 	randAddr   *BleAddr
 	advertiser *Advertiser
 	cm         ChrMgr
+	sesns      map[uint16]*BleSesn
 
 	stopChan     chan struct{}
 	shutdownChan chan bool
 	readyBcast   nmxutil.Bcaster
-	sesns        map[uint16]*BleSesn
 	mtx          sync.Mutex
 	wg           sync.WaitGroup
 }
