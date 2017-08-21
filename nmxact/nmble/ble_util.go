@@ -798,56 +798,6 @@ func BuildMgmtChrs(mgmtProto sesn.MgmtProto) (BleMgmtChrs, error) {
 	return mgmtChrs, nil
 }
 
-func MtuIn(mgmtProto sesn.MgmtProto, attMtu uint16) (int, error) {
-	var mtu int
-
-	switch mgmtProto {
-	case sesn.MGMT_PROTO_NMP:
-		mtu = int(attMtu) - NOTIFY_CMD_BASE_SZ - nmp.NMP_HDR_SIZE
-
-	case sesn.MGMT_PROTO_OMP:
-		mtu = int(attMtu) - NOTIFY_CMD_BASE_SZ - omp.OMP_MSG_OVERHEAD -
-			nmp.NMP_HDR_SIZE
-
-	default:
-		return 0, fmt.Errorf("Invalid management protocol: %s", mgmtProto)
-	}
-
-	return mtu, nil
-}
-
-func MtuOut(mgmtProto sesn.MgmtProto, attMtu uint16) (int, error) {
-	var mtu int
-
-	switch mgmtProto {
-	case sesn.MGMT_PROTO_NMP:
-		mtu = int(attMtu) - NOTIFY_CMD_BASE_SZ - nmp.NMP_HDR_SIZE
-
-	case sesn.MGMT_PROTO_OMP:
-		mtu = int(attMtu) - NOTIFY_CMD_BASE_SZ - omp.OMP_MSG_OVERHEAD -
-			nmp.NMP_HDR_SIZE
-
-	default:
-		return 0, fmt.Errorf("Invalid management protocol: %s", mgmtProto)
-	}
-
-	return util.IntMin(mtu, BLE_ATT_ATTR_MAX_LEN), nil
-}
-
-func EncodeMgmtMsg(mgmtProto sesn.MgmtProto, m *nmp.NmpMsg) ([]byte, error) {
-	switch mgmtProto {
-	case sesn.MGMT_PROTO_NMP:
-		return nmp.EncodeNmpPlain(m)
-
-	case sesn.MGMT_PROTO_OMP:
-		return omp.EncodeOmpTcp(m)
-
-	default:
-		return nil,
-			fmt.Errorf("invalid management protocol: %+v", mgmtProto)
-	}
-}
-
 type MasterPrio int
 
 const (

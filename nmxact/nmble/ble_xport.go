@@ -316,7 +316,7 @@ func (bx *BleXport) shutdown(restart bool, err error) {
 
 	// Stop all of this transport's Go routines.
 	close(bx.stopChan)
-	wg.Wait()
+	bx.wg.Wait()
 
 	// Stop the unixchild instance (blehostd + socket).
 	if bx.client != nil {
@@ -407,9 +407,9 @@ func (bx *BleXport) startOnce() error {
 	}
 
 	// Listen for errors and data from the blehostd process.
-	wg.Add(1)
+	bx.wg.Add(1)
 	go func() {
-		defer c.wg.Done()
+		defer bx.wg.Done()
 
 		for {
 			select {
@@ -466,9 +466,9 @@ func (bx *BleXport) startOnce() error {
 	//     * sync loss
 	//     * stack reset
 	//     * GATT access
-	wg.Add(1)
+	bx.wg.Add(1)
 	go func() {
-		defer c.wg.Done()
+		defer bx.wg.Done()
 
 		resetl, err := bx.addResetListener()
 		if err != nil {
