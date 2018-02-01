@@ -14,16 +14,21 @@
   version = "v1.0.18"
 
 [[projects]]
-  name = "github.com/fatih/structs"
+  name = "github.com/chzyer/readline"
   packages = ["."]
-  revision = "a720dfa8df582c51dee1b36feabb906bde1588bd"
-  version = "v1.0"
+  revision = "f6d7a1f6fbf35bbf9beb80dc63c56a29dcfb759f"
 
 [[projects]]
   name = "github.com/fatih/color"
   packages = ["."]
   revision = "570b54cabe6b8eb0bc2dfce68d964677d63b5260"
   version = "v1.5.0"
+
+[[projects]]
+  name = "github.com/fatih/structs"
+  packages = ["."]
+  revision = "a720dfa8df582c51dee1b36feabb906bde1588bd"
+  version = "v1.0"
 
 [[projects]]
   branch = "master"
@@ -188,11 +193,6 @@
   version = "v1.4.2"
 
 [[projects]]
-  name = "github.com/chzyer/readline"
-  packages = ["."]
-  revision = "f6d7a1f6fbf35bbf9beb80dc63c56a29dcfb759f"
-
-[[projects]]
   branch = "master"
   name = "mynewt.apache.org/newt"
   packages = ["util","util/unixchild","viper","yaml"]
@@ -201,6 +201,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "736490ccf463253de691a0c1e94cb7c24fd634734f711e68c25fa5cbc8123788"
+  inputs-digest = "fbd2ac1c820d2f5720ba30156ca1554c414b285ee95980ece69692ba322c0645"
   solver-name = "gps-cdcl"
   solver-version = 1
