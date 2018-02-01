@@ -25,7 +25,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/runtimeco/ble"
+	"github.com/go-ble/ble"
 
 	"mynewt.apache.org/newt/util"
 	"mynewt.apache.org/newtmgr/newtmgr/bll"

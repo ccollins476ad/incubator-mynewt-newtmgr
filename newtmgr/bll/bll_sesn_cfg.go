@@ -24,7 +24,7 @@ package bll
 import (
 	"time"
 
-	"github.com/runtimeco/ble"
+	"github.com/go-ble/ble"
 
 	"mynewt.apache.org/newtmgr/nmxact/sesn"
 )

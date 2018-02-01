@@ -26,7 +26,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/runtimeco/ble"
+	"github.com/go-ble/ble"
 
 	"mynewt.apache.org/newtmgr/nmxact/bledefs"
 )
