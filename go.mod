@@ -3,8 +3,7 @@ module mynewt.apache.org/newtmgr
 go 1.12
 
 require (
-	github.com/JuulLabs-OSS/ble v0.0.0-20200421174404-4a6a93a950fe
-	github.com/JuulLabs-OSS/cbgo v0.0.0-20200421065905-1762a9c3147c
+	github.com/JuulLabs-OSS/cbgo v0.0.1
 	github.com/abiosoft/ishell v2.0.0+incompatible // indirect
 	github.com/abiosoft/readline v0.0.0-20180607040430-155bce2042db // indirect
 	github.com/cheggaaa/pb v2.0.7+incompatible // indirect
@@ -15,6 +14,7 @@ require (
 	github.com/fatih/color v1.7.0 // indirect
 	github.com/fatih/structs v1.1.0
 	github.com/flynn-archive/go-shlex v0.0.0-20150515145356-3f9db97f8568 // indirect
+	github.com/go-ble/ble v0.0.0-20200407180624-067514cd6e24
 	github.com/joaojeronimo/go-crc16 v0.0.0-20140729130949-59bd0194935e
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/mattn/go-colorable v0.1.6 // indirect
@@ -25,6 +25,7 @@ require (
 	github.com/peterh/liner v1.1.0 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/raff/goble v0.0.0-20200327175727-d63360dcfd80 // indirect
+	github.com/runtimeco/ble v0.0.0-20200415232831-2930ff1d9d98 // indirect
 	github.com/runtimeco/go-coap v0.0.0-20190911184520-8e5532820fc0
 	github.com/sirupsen/logrus v1.5.0
 	github.com/spf13/cast v1.3.0
@@ -47,3 +48,7 @@ require (
 	gopkg.in/yaml.v2 v2.2.4 // indirect
 	mynewt.apache.org/newt v0.0.0-20200409145402-c5d1e422bfa3
 )
+
+replace github.com/JuulLabs-OSS/cbgo => /Users/ccollins/go/src/github.com/JuulLabs-OSS/cbgo
+
+replace github.com/go-ble/ble => /Users/ccollins/go/src/github.com/JuulLabs-OSS/ble

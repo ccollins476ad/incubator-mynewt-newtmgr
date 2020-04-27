@@ -51,6 +51,8 @@ github.com/go-ble/ble v0.0.0-20181002102605-e78417b510a3 h1:rsLGztXl2QJvj4x/PAWz
 github.com/go-ble/ble v0.0.0-20181002102605-e78417b510a3/go.mod h1:UMPB54/KFpdTdfH7Yovhk3J6kzgzE88e3QZi8cbayis=
 github.com/go-ble/ble v0.0.0-20190521171521-147700f13610 h1:eWay3GzFqTJUEYN1BrbqdDTFeFUGmYLps8SQkn1D7Yo=
 github.com/go-ble/ble v0.0.0-20190521171521-147700f13610/go.mod h1:UMPB54/KFpdTdfH7Yovhk3J6kzgzE88e3QZi8cbayis=
+github.com/go-ble/ble v0.0.0-20200407180624-067514cd6e24 h1:6St0uI/mfzuJX/y596wl2dJmA1VfdBSqopaUfS29z24=
+github.com/go-ble/ble v0.0.0-20200407180624-067514cd6e24/go.mod h1:nwmyxHsP2cqjashMTTAl3A5t6V3vzev1rLgMb/pZ7jc=
 github.com/go-delve/delve v1.3.1 h1:LI0X4aAE0N7ay8uR48aMJ6GNTxamIpcxi1THjwJjenI=
 github.com/go-delve/delve v1.3.1/go.mod h1:LLw6qJfIsRK9WcwV2IRRqsdlgrqzOeuGrQOCOIhDpt8=
 github.com/golang/protobuf v1.2.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
@@ -129,6 +131,8 @@ github.com/runtimeco/ble v0.0.0-20200415220531-f9446d5ceaa0 h1:c9XUP60fj/TYfgTMe
 github.com/runtimeco/ble v0.0.0-20200415220531-f9446d5ceaa0/go.mod h1:8qIeQ5+SWubMqC4I8oOKSv3/LXKTNdNM9RXBtmzJRho=
 github.com/runtimeco/ble v0.0.0-20200415221513-92ccf39ed897 h1:EWghyhxVkdeLMPTRfVbmKCYjJY8zl6fR2LbySLISdDQ=
 github.com/runtimeco/ble v0.0.0-20200415221513-92ccf39ed897/go.mod h1:5LE1oZ448zVkPTK1+lqdxf2GUiDPRUsxaarJhJiQbN4=
+github.com/runtimeco/ble v0.0.0-20200415232831-2930ff1d9d98 h1:YxXN3Supb5xLKXFuxiAqabfYpMk+PiA3FGMOYE9ITWg=
+github.com/runtimeco/ble v0.0.0-20200415232831-2930ff1d9d98/go.mod h1:5LE1oZ448zVkPTK1+lqdxf2GUiDPRUsxaarJhJiQbN4=
 github.com/runtimeco/go-coap v0.0.0-20180109101419-47c23e2a63ea h1:zTOcylKcdobkyW4gySyvvHkAGnOP0QNcGaO0ZQJFgxQ=
 github.com/runtimeco/go-coap v0.0.0-20180109101419-47c23e2a63ea/go.mod h1:x/rLuxedbWFDN497ZirUaDklkWz6JhZLjGdgurMysxM=
 github.com/runtimeco/go-coap v0.0.0-20190911184520-8e5532820fc0 h1:WOVbcRe5kFuLbhZdyz8PKVR6L22C6I48fWIUS5ucpGY=

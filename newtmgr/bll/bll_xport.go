@@ -24,8 +24,8 @@ package bll
 import (
 	"fmt"
 
-	"github.com/JuulLabs-OSS/ble"
-	"github.com/JuulLabs-OSS/ble/examples/lib/dev"
+	"github.com/go-ble/ble"
+	"github.com/go-ble/ble/examples/lib/dev"
 	"mynewt.apache.org/newtmgr/nmxact/bledefs"
 	"mynewt.apache.org/newtmgr/nmxact/sesn"
 )
@@ -62,6 +62,18 @@ func (bx *BllXport) BuildBllSesn(cfg BllSesnCfg) (sesn.Sesn, error) {
 	return NewBllSesn(cfg), nil
 }
 
+type myreadhandler struct {
+}
+
+func (m *myreadhandler) ServeRead(req ble.Request, rsp ble.ResponseWriter) {
+	rsp.Write([]byte{99, 1, 2, 3, 4, 5, 6, 7})
+}
+func (m *myreadhandler) ServeWrite(req ble.Request, rsp ble.ResponseWriter) {
+	if len(req.Data())%2 != 0 {
+		rsp.SetStatus(ble.ATTError(1))
+	}
+}
+
 func (bx *BllXport) Start() error {
 	d, err := dev.NewDevice(bx.cfg.CtlrName, ble.OptDeviceID(bx.hciIdx))
 	if err != nil {
@@ -74,6 +86,47 @@ func (bx *BllXport) Start() error {
 	}
 
 	ble.SetDefaultDevice(d)
+
+	/*
+		svc := ble.NewService(ble.UUID16(0x1234))
+		chr := ble.NewCharacteristic(ble.UUID16(0x5678))
+		chr.Property = ble.CharRead | ble.CharWriteNR
+		chr.Value = nil
+		chr.ReadHandler = &myreadhandler{}
+		chr.WriteHandler = &myreadhandler{}
+		svc.Characteristics = append(svc.Characteristics, chr)
+
+		chr.HandleNotify(ble.NotifyHandlerFunc(func(req ble.Request, n ble.Notifier) {
+			cnt := 0
+			fmt.Printf("count: Notification subscribed")
+			for {
+				select {
+				case <-n.Context().Done():
+					fmt.Printf("count: Notification unsubscribed\n")
+					return
+				case <-time.After(time.Second):
+					fmt.Printf("count: Notify: %d\n", cnt)
+					if _, err := fmt.Fprintf(n, "Count: %d", cnt); err != nil {
+						// Client disconnected prematurely before unsubscription.
+						fmt.Printf("count: Failed to notify : %s\n", err)
+						return
+					}
+					cnt++
+				}
+			}
+		}))
+
+		err = d.SetServices([]*ble.Service{svc})
+		if err != nil {
+			panic(err)
+		}
+
+		//err = d.AdvertiseIBeacon(context.TODO(), ble.UUID16(0x1234), 0x1234, 0x5678, 120)
+		err = d.AdvertiseNameAndServices(context.TODO(), "yourMOM", ble.UUID16(0x1234))
+		if err != nil {
+			panic(err)
+		}
+	*/
 
 	return nil
 }
